@@ -7,11 +7,11 @@ data=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\blatchford_202101.csv'
 energy=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_2021.csv',
                       encoding = "ISO-8859-1", engine='python')
 
-a=data['temperature'][0:5]
-b=data['windSpeed'][0:4]
-
-series1 = pd.Series([1,4,5,10,9,3,2,6,8,4])
-series2 = pd.Series([1,7,3,4,1,10,5,4,7,4])
+a=data['temperature'][0:24]
+b=data['windSpeed'][0:24]
+#
+#series1 = pd.Series([1,1,4,10,9,3,2,6,8,4])
+#series2 = pd.Series([1,4,10,9,3,2,6,8,4,4])
 
 def dtw_cost(ts1,ts2):
     len_1=len(ts1)
@@ -29,9 +29,36 @@ def dtw_cost(ts1,ts2):
                 matrix[i2,j2]=abs(ts1[i2]-ts2[j2])+matrix[i2,j2-1]
             elif i2 != 0 and j2 == 0:
                 matrix[i2,j2]=abs(ts1[i2]-ts2[j2])+matrix[i2-1,j2]
-#    return matrix
-    print(matrix)
+    return matrix
+#    print(matrix)
     
     
-#cost=dtw_cost(a,b)
-dtw_cost(series1,series2)
+def dtw_distance(cost_matrix):
+    d=[]
+    row_index=len(cost_matrix)-1
+    col_index=len(cost_matrix[0])-1
+    d.append(cost_matrix[row_index,col_index])
+    while row_index!=0 and col_index!=0:
+        if row_index>0 and col_index>0:
+            if cost_matrix[row_index-1,col_index]<cost_matrix[row_index,col_index-1] and cost_matrix[row_index-1,col_index]<cost_matrix[row_index-1,col_index-1]:
+                d.append(cost_matrix[row_index-1,col_index])
+                row_index=row_index-1
+            elif cost_matrix[row_index,col_index-1]<cost_matrix[row_index-1,col_index] and cost_matrix[row_index,col_index-1]<cost_matrix[row_index-1,col_index-1]: 
+                d.append(cost_matrix[row_index,col_index-1])
+                col_index=col_index-1
+            elif cost_matrix[row_index-1,col_index-1]<=cost_matrix[row_index-1,col_index] and cost_matrix[row_index-1,col_index-1]<cost_matrix[row_index,col_index-1]: 
+                d.append(cost_matrix[row_index-1,col_index-1])
+                col_index=col_index-1
+                row_index=row_index-1
+        elif row_index==0 and col_index>0:
+            d.append(cost_matrix[row_index,col_index-1])
+            col_index=col_index-1
+        elif row_index>0 and col_index==0:
+            d.append(cost_matrix[row_index-1,col_index])
+            row_index=row_index-1
+            
+    print(round(np.sum(d)/len(d),4))
+    
+    
+c_matrix=dtw_cost(a,b)
+dtw_distance(c_matrix)
