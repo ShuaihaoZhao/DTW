@@ -24,14 +24,14 @@ energy_5=energy_5.reset_index(drop=True)
 
 
 #a=data['irradiance'][0:24]
-#a=energy['energy'][0:48]/26280
-#b=energy_5['energy'][0:34]/6896
+a=energy['energy'][0:578]/26280
+b=energy_5['energy'][0:238]/6896
 
 
 #test time seriesa
-a = pd.Series([1,3,5,5,6,8,9,10,11,7,5,6,5,6,2,1])
-b = pd.Series([0,0,0,0,0,0,0,0,2,4,6,6,6,7,9,10,10,11,12,8,6,5,4,5,1,0])
-1
+#a = pd.Series([8,9,1,9,6,1,3,5])
+#b = pd.Series([2,5,4,6,7,8,3,7,7,2])
+
 def dtw_cost(ts1,ts2):
     len_1=len(ts1)
     len_2=len(ts2)
@@ -39,16 +39,16 @@ def dtw_cost(ts1,ts2):
     for i in range(len_1):
         for j in range(len_2):
             matrix[i,j]=np.inf
-    matrix[0,0]=0
     for i2 in range(len_1):
         for j2 in range(len_2):
             if(i2 != 0 and j2 != 0):
-                matrix[i2,j2]=abs(ts1[i2]-ts2[j2])+np.min([matrix[i2-1,j2],matrix[i2,j2-1],matrix[i2-1,j2-1]])
+                matrix[i2,j2]=np.sqrt((ts1[i2]-ts2[j2])**2)+np.min([matrix[i2-1,j2],matrix[i2,j2-1],matrix[i2-1,j2-1]])
             elif i2 == 0 and j2 != 0:
-                matrix[i2,j2]=abs(ts1[i2]-ts2[j2])+matrix[i2,j2-1]
+                matrix[i2,j2]=np.sqrt((ts1[i2]-ts2[j2])**2)+matrix[i2,j2-1]
             elif i2 != 0 and j2 == 0:
-                matrix[i2,j2]=abs(ts1[i2]-ts2[j2])+matrix[i2-1,j2]
-#    print(matrix)
+                matrix[i2,j2]=np.sqrt((ts1[i2]-ts2[j2])**2)+matrix[i2-1,j2]
+            elif i2 == 0 and j2 == 0:
+                matrix[i2,j2]=np.sqrt((ts1[i2]-ts2[j2])**2)
     return matrix
     
     
@@ -87,10 +87,24 @@ def dtw_distance(cost_matrix):
 #    print(path)
 #    print(d)
     return path
+
+def dtw_path(pair,d1,d2):
+    re_d1=[]
+    re_d2=[]
+    index=len(pair)
+    for i in range(index):
+        re_d1.append(a[pair[i][0]])
+        re_d2.append(b[pair[i][1]])
+    re_d1.reverse()
+    re_d2.reverse()
+    return re_d1,re_d2
+        
+        
     
 
 c_matrix=dtw_cost(a,b)
 path_pair=dtw_distance(c_matrix)
+warping_d1,warping_d2=dtw_path(path_pair,a,b)
 
 path_x = [p[1] for p in path_pair]
 path_y = [p[0] for p in path_pair]
@@ -108,7 +122,7 @@ ax.plot(path_xx, path_yy, color='red', linewidth=3, alpha=0.5)
 
 plt.figure(figsize=(12,12))
 plt.plot(a.index,a,color='b',label='date set 1')
-plt.plot(b.index,b,color='r',label='date set 1')
+plt.plot(b.index,b,color='r',label='date set 2')
 plt.title('Energy Data Plot')
 plt.xlabel('Index')
 plt.ylabel('Normalized')
@@ -124,4 +138,14 @@ for i in range(len(path_pair)):
     plt.plot(temp[0],temp[1],'--',color='k',alpha=0.3)
     
 plt.show()  
+
+plt.figure(figsize=(12,12))
+plt.plot(warping_d1,color='b',label='adjusted path date set 1')
+plt.plot(warping_d2,color='r',label='adjusted path date set 2')
+plt.title('Energy adjusted Data Plot')
+plt.xlabel('Index')
+plt.ylabel('Normalized')
+plt.legend(loc="upper left")
+
+
     
