@@ -6,32 +6,50 @@ import seaborn as sns
 data=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\blatchford_202101.csv',
                       encoding = "ISO-8859-1", engine='python')
 data['date']=pd.to_datetime(data['date'])
-energy=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_2021.csv',
+energy_1713=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_2021.csv',
                       encoding = "ISO-8859-1", engine='python')
 
-energy_5=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_5_sites.csv',
+energy_982=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_5_sites.csv',
                       encoding = "ISO-8859-1", engine='python')[0:3102]
 
+energy_1265=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_5_sites.csv',
+                      encoding = "ISO-8859-1", engine='python')[3102:7584]
 #sort the energy by date time and reset index
-energy['date']=pd.to_datetime(energy['date'])
-energy=energy.sort_values(by='date')
-energy = energy.reset_index(drop=True)
+energy_1713['date']=pd.to_datetime(energy_1713['date'])
+energy_1713=energy_1713.sort_values(by='date')
+energy_1713 = energy_1713.reset_index(drop=True)
 
-energy_5['date']=pd.to_datetime(energy_5['date'])
-energy_5=energy_5.sort_values(by='date')
-energy_5=energy_5.reset_index(drop=True)
+energy_982['date']=pd.to_datetime(energy_982['date'])
+energy_982=energy_982.sort_values(by='date')
+energy_982=energy_982.reset_index(drop=True)
 
-
+energy_1265['date']=pd.to_datetime(energy_1265['date'])
+energy_1265=energy_1265.sort_values(by='date')
+energy_1265=energy_1265.reset_index(drop=True)
 
 #a=data['irradiance'][0:24]
-a=energy['energy'][0:578]/26280
-b=energy_5['energy'][0:238]/6896
+#a=energy_1713['energy'][0:70]/26280
+a=energy_982['energy'][0:238]/15/6896
+b=energy_1265['energy'][0:39]/100000
 
 
 #test time seriesa
 #a = pd.Series([8,9,1,9,6,1,3,5])
 #b = pd.Series([2,5,4,6,7,8,3,7,7,2])
-
+def validtae_range(data1):
+    median_1=0.0
+    median_2=0.0
+    for i in range(len(data1)):
+         median_1= median_1+data1[i]
+    median_1= median_1/len(data1)
+    
+    for j in range(len(data1)):
+        median_2= median_2+abs(median_1-data1[i])
+        
+    median_2= median_2/len(data1)
+    std=np.std(data1)
+    return median_2,std
+     
 def dtw_cost(ts1,ts2):
     len_1=len(ts1)
     len_2=len(ts2)
@@ -105,6 +123,7 @@ def dtw_path(pair,d1,d2):
 c_matrix=dtw_cost(a,b)
 path_pair=dtw_distance(c_matrix)
 warping_d1,warping_d2=dtw_path(path_pair,a,b)
+median,std=validtae_range(a)
 
 path_x = [p[1] for p in path_pair]
 path_y = [p[0] for p in path_pair]
@@ -128,16 +147,16 @@ plt.xlabel('Index')
 plt.ylabel('Normalized')
 plt.legend(loc="upper left")
 
-for i in range(len(path_pair)):
-    x1=path_pair[i][0]
-    x2=path_pair[i][1]
-    y1=a[x1]
-    y2=b[x2]
-    temp=[[x1,x2],[y1,y2]]
-    plt.scatter(temp[0],temp[1],marker='o',color='k');
-    plt.plot(temp[0],temp[1],'--',color='k',alpha=0.3)
-    
-plt.show()  
+#for i in range(len(path_pair)):
+#    x1=path_pair[i][0]
+#    x2=path_pair[i][1]
+#    y1=a[x1]
+#    y2=b[x2]
+#    temp=[[x1,x2],[y1,y2]]
+#    plt.scatter(temp[0],temp[1],marker='o',color='k');
+#    plt.plot(temp[0],temp[1],'--',color='k',alpha=0.3)
+#    
+#plt.show()  
 
 plt.figure(figsize=(12,12))
 plt.plot(warping_d1,color='b',label='adjusted path date set 1')
@@ -146,6 +165,18 @@ plt.title('Energy adjusted Data Plot')
 plt.xlabel('Index')
 plt.ylabel('Normalized')
 plt.legend(loc="upper left")
+
+e_distance=[]
+for e_index in range(len(warping_d1)-1):
+    e_distance.append(np.sqrt((warping_d1[e_index]-warping_d2[e_index])**2))
+    
+    
+plt.figure(figsize=(12,12))
+plt.plot(e_distance,color='r',label='Eucldian distance')
+plt.axhline(y=median, color='k', linestyle='--')
+plt.axhline(y=median-std, color='k', linestyle='--')
+plt.axhline(y=median+std, color='k', linestyle='--')
+
 
 
     
