@@ -14,6 +14,9 @@ energy_982=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_5_sites.c
 
 energy_1265=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_5_sites.csv',
                       encoding = "ISO-8859-1", engine='python')[3102:7584]
+
+energy_1274=pd.read_csv(r'E:\U_of_A\ECE910\Solar Data (DTWA)\DTW\energy_5_sites.csv',
+                      encoding = "ISO-8859-1", engine='python')[7584:10722]
 #sort the energy by date time and reset index
 energy_1713['date']=pd.to_datetime(energy_1713['date'])
 energy_1713=energy_1713.sort_values(by='date')
@@ -27,28 +30,33 @@ energy_1265['date']=pd.to_datetime(energy_1265['date'])
 energy_1265=energy_1265.sort_values(by='date')
 energy_1265=energy_1265.reset_index(drop=True)
 
+energy_1274['date']=pd.to_datetime(energy_1274['date'])
+energy_1274=energy_1274.sort_values(by='date')
+energy_1274=energy_1274.reset_index(drop=True)
+
 #a=data['irradiance'][0:24]
-#a=energy_1713['energy'][0:70]/26280
-a=energy_982['energy'][0:238]/15/6896
-b=energy_1265['energy'][0:39]/100000
+a=energy_1713['energy'][0:70]/26280
+#a=energy_982['energy'][0:34]/6896
+b=energy_1274['energy'][0:33]/7040
+#b=energy_1265['energy'][0:39]/100000
 
 
 #test time seriesa
 #a = pd.Series([8,9,1,9,6,1,3,5])
 #b = pd.Series([2,5,4,6,7,8,3,7,7,2])
-def validtae_range(data1):
-    median_1=0.0
-    median_2=0.0
-    for i in range(len(data1)):
-         median_1= median_1+data1[i]
-    median_1= median_1/len(data1)
-    
-    for j in range(len(data1)):
-        median_2= median_2+abs(median_1-data1[i])
-        
-    median_2= median_2/len(data1)
-    std=np.std(data1)
-    return median_2,std
+#def validtae_range(data1):
+#    median_1=0.0
+#    median_2=0.0
+#    for i in range(len(data1)):
+#         median_1= median_1+data1[i]
+#    median_1= median_1/len(data1)
+#    
+#    for j in range(len(data1)):
+#        median_2= median_2+abs(median_1-data1[i])
+#        
+#    median_2= median_2/len(data1)
+#    std=np.std(data1)
+#    return median_2,std
      
 def dtw_cost(ts1,ts2):
     len_1=len(ts1)
@@ -123,7 +131,7 @@ def dtw_path(pair,d1,d2):
 c_matrix=dtw_cost(a,b)
 path_pair=dtw_distance(c_matrix)
 warping_d1,warping_d2=dtw_path(path_pair,a,b)
-median,std=validtae_range(a)
+#median,std=validtae_range(a)
 
 path_x = [p[1] for p in path_pair]
 path_y = [p[0] for p in path_pair]
@@ -147,16 +155,16 @@ plt.xlabel('Index')
 plt.ylabel('Normalized')
 plt.legend(loc="upper left")
 
-#for i in range(len(path_pair)):
-#    x1=path_pair[i][0]
-#    x2=path_pair[i][1]
-#    y1=a[x1]
-#    y2=b[x2]
-#    temp=[[x1,x2],[y1,y2]]
-#    plt.scatter(temp[0],temp[1],marker='o',color='k');
-#    plt.plot(temp[0],temp[1],'--',color='k',alpha=0.3)
-#    
-#plt.show()  
+for i in range(len(path_pair)):
+    x1=path_pair[i][0]
+    x2=path_pair[i][1]
+    y1=a[x1]
+    y2=b[x2]
+    temp=[[x1,x2],[y1,y2]]
+    plt.scatter(temp[0],temp[1],marker='o',color='k');
+    plt.plot(temp[0],temp[1],'--',color='k',alpha=0.3)
+    
+plt.show()  
 
 plt.figure(figsize=(12,12))
 plt.plot(warping_d1,color='b',label='adjusted path date set 1')
@@ -171,11 +179,11 @@ for e_index in range(len(warping_d1)-1):
     e_distance.append(np.sqrt((warping_d1[e_index]-warping_d2[e_index])**2))
     
     
-plt.figure(figsize=(12,12))
-plt.plot(e_distance,color='r',label='Eucldian distance')
-plt.axhline(y=median, color='k', linestyle='--')
-plt.axhline(y=median-std, color='k', linestyle='--')
-plt.axhline(y=median+std, color='k', linestyle='--')
+#plt.figure(figsize=(12,12))
+#plt.plot(e_distance,color='r',label='Eucldian distance')
+#plt.axhline(y=median, color='k', linestyle='--')
+#plt.axhline(y=median-std, color='k', linestyle='--')
+#plt.axhline(y=median+std, color='k', linestyle='--')
 
 
 
